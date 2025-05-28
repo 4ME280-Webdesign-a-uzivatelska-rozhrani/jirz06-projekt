@@ -1,6 +1,6 @@
 const petsContainer = document.getElementById("pets");
-const binId = "TVŮJ_BIN_ID"; // <-- Změň na svůj BIN ID z JSONBin
-const apiKey = "TVŮJ_API_KLÍČ"; // <-- Změň na svůj tajný klíč
+const binId = "68379ebf8960c979a5a26a7c"; // <-- Změň na svůj BIN ID z JSONBin
+const apiKey = "$2a$10$qNV2tGipYXuFW3167xxgveC1QFEU7D.1fB.aARUKWmvB2htsyVee6"; // <-- Změň na svůj tajný klíč
 
 let data = { pets: [] };
 
