@@ -1,21 +1,107 @@
-const petsContainer = document.getElementById("pets");
-const binId = "68379ebf8960c979a5a26a7c"; // <-- Změň na svůj BIN ID z JSONBin
+const binId = "68380d588a456b7966a6d16b"; // <- Nahraď svým JSONBin ID
 const apiKey = "$2a$10$qNV2tGipYXuFW3167xxgveC1QFEU7D.1fB.aARUKWmvB2htsyVee6";
-// <-- Změň na svůj tajný klíč
 
 let data = { pets: [] };
+let currentUser = "";
 
-// Načti data z JSONBin
+const petsContainer = document.getElementById("pets");
+const dashboard = document.querySelector(".dashboard");
+const currentUserSpan = document.getElementById("currentUser");
+
+function login() {
+  const name = document.getElementById("userNameInput").value.trim();
+  if (!name) return;
+  currentUser = name;
+  currentUserSpan.textContent = name;
+  document.querySelector(".login").style.display = "none";
+  dashboard.style.display = "block";
+  loadData();
+}
+
+function renderPets() {
+  petsContainer.innerHTML = "";
+  data.pets.forEach((pet, i) => {
+    const card = document.createElement("div");
+    card.className = "pet-card";
+    card.innerHTML = `
+      <h2>${pet.name}</h2>
+      <div>
+        <strong>Procházka:</strong>
+        ${["Ráno", "Odpoledne", "Večer"].map(time =>
+          renderCheckbox(pet, i, "walk", time)).join("")}
+      </div>
+      <div>
+        <strong>Krmení:</strong>
+        ${["Ráno", "Odpoledne", "Večer"].map(time =>
+          renderCheckbox(pet, i, "feed", time)).join("")}
+      </div>
+      <div>
+        <strong>Veterinář:</strong><br>
+        <input type="date" id="date-${i}">
+        <input type="time" id="time-${i}">
+        <button onclick="addVetVisit(${i})">Naplánovat</button>
+        <div>
+          ${pet.vetVisits.map(v => `
+            <div class="activity">${v.date} ${v.time} – ${v.by}</div>
+          `).join("")}
+        </div>
+      </div>`;
+    petsContainer.appendChild(card);
+  });
+}
+
+function renderCheckbox(pet, petIndex, type, time) {
+  const existing = pet.activities?.find(
+    a => a.type === type && a.time === time
+  );
+  return `
+    <label>
+      <input type="checkbox" ${existing?.by === currentUser ? "checked" : ""}
+        onchange="toggleActivity(${petIndex}, '${type}', '${time}')">
+      ${time}
+    </label>
+  `;
+}
+
+function toggleActivity(petIndex, type, time) {
+  const pet = data.pets[petIndex];
+  pet.activities = pet.activities || [];
+  const index = pet.activities.findIndex(a => a.type === type && a.time === time);
+  if (index > -1 && pet.activities[index].by === currentUser) {
+    pet.activities.splice(index, 1);
+  } else {
+    pet.activities.push({ type, time, by: currentUser });
+  }
+  saveData().then(renderPets);
+}
+
+function addVetVisit(petIndex) {
+  const date = document.getElementById(`date-${petIndex}`).value;
+  const time = document.getElementById(`time-${petIndex}`).value;
+  if (!date || !time) return;
+  const pet = data.pets[petIndex];
+  pet.vetVisits = pet.vetVisits || [];
+  pet.vetVisits.push({ date, time, by: currentUser });
+  saveData().then(renderPets);
+}
+
+function addPet() {
+  const name = document.getElementById("petNameInput").value.trim();
+  if (!name) return;
+  data.pets.push({ name, activities: [], vetVisits: [] });
+  document.getElementById("petNameInput").value = "";
+  saveData().then(renderPets);
+}
+
 async function loadData() {
   const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
     headers: { "X-Master-Key": apiKey }
   });
   const json = await res.json();
-  data = json.record;
+  data = json.record || { pets: [] };
   renderPets();
 }
 
-// Ulož data do JSONBin
 async function saveData() {
   await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
     method: "PUT",
@@ -26,54 +112,3 @@ async function saveData() {
     body: JSON.stringify(data)
   });
 }
-
-// Přidat mazlíčka
-function addPet() {
-  const name = document.getElementById("petNameInput").value.trim();
-  if (!name) return;
-  data.pets.push({ name, activities: [] });
-  document.getElementById("petNameInput").value = "";
-  saveData().then(renderPets);
-}
-
-// Přidat aktivitu pro mazlíčka
-function addActivity(petIndex, inputId) {
-  const input = document.getElementById(inputId);
-  const activity = input.value.trim();
-  if (!activity) return;
-  data.pets[petIndex].activities.push({ name: activity, assignedTo: null });
-  input.value = "";
-  saveData().then(renderPets);
-}
-
-// Zapsat se na aktivitu
-function assignActivity(petIndex, activityIndex) {
-  const who = prompt("Zadej své jméno pro zapsání:");
-  if (!who) return;
-  data.pets[petIndex].activities[activityIndex].assignedTo = who;
-  saveData().then(renderPets);
-}
-
-// Vykreslit mazlíčky a aktivity
-function renderPets() {
-  petsContainer.innerHTML = "";
-  data.pets.forEach((pet, i) => {
-    const card = document.createElement("div");
-    card.className = "pet-card";
-    card.innerHTML = `<h2>${pet.name}</h2>
-      <input type="text" id="activity-${i}" placeholder="Nová aktivita" />
-      <button onclick="addActivity(${i}, 'activity-${i}')">Přidat</button>
-      <div>
-        ${pet.activities.map((act, j) => `
-          <div class="activity">
-            <strong>${act.name}</strong><br/>
-            ${act.assignedTo ? `Zapsal se: <em>${act.assignedTo}</em>` :
-              `<button onclick="assignActivity(${i}, ${j})">Zapsat se</button>`}
-          </div>`).join("")}
-      </div>`;
-    petsContainer.appendChild(card);
-  });
-}
-
-// Načtení při startu
-loadData();
