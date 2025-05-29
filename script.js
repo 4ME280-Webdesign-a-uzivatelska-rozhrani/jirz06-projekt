@@ -1,4 +1,4 @@
-const binId = "68380d588a456b7966a6d16b"; // <- Nahraď svým JSONBin ID
+const binId = "68380d588a456b7966a6d16b";
 const apiKey = "$2a$10$qNV2tGipYXuFW3167xxgveC1QFEU7D.1fB.aARUKWmvB2htsyVee6";
 
 let data = { pets: [] };
