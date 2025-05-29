@@ -42,8 +42,11 @@ function renderPets() {
         <input type="time" id="time-${i}">
         <button onclick="addVetVisit(${i})">Naplánovat</button>
         <div>
-          ${pet.vetVisits.map(v => `
-            <div class="activity">${v.date} ${v.time} – ${v.by}</div>
+          ${pet.vetVisits.map((v, j) => `
+            <div class="activity">
+              ${v.date} ${v.time} – ${v.by}
+              ${v.by === currentUser ? `<button onclick="removeVetVisit(${i}, ${j})">❌</button>` : ""}
+            </div>
           `).join("")}
         </div>
       </div>
@@ -52,7 +55,7 @@ function renderPets() {
         ${pet.activities?.map((a, j) => `
           <div class="activity">
             ${a.type} – ${a.time} – ${a.by}
-            <button onclick="removeActivity(${i}, ${j})">❌</button>
+            ${a.by === currentUser ? `<button onclick="removeActivity(${i}, ${j})">❌</button>` : ""}
           </div>
         `).join("") || "<div>Žádné aktivity</div>"}
       </div>`;
@@ -62,11 +65,11 @@ function renderPets() {
 
 function renderCheckbox(pet, petIndex, type, time) {
   const existing = pet.activities?.find(
-    a => a.type === type && a.time === time
+    a => a.type === type && a.time === time && a.by === currentUser
   );
   return `
     <label>
-      <input type="checkbox" ${existing?.by === currentUser ? "checked" : ""}
+      <input type="checkbox" ${existing ? "checked" : ""}
         onchange="toggleActivity(${petIndex}, '${type}', '${time}')">
       ${time}
     </label>
@@ -76,8 +79,8 @@ function renderCheckbox(pet, petIndex, type, time) {
 function toggleActivity(petIndex, type, time) {
   const pet = data.pets[petIndex];
   pet.activities = pet.activities || [];
-  const index = pet.activities.findIndex(a => a.type === type && a.time === time);
-  if (index > -1 && pet.activities[index].by === currentUser) {
+  const index = pet.activities.findIndex(a => a.type === type && a.time === time && a.by === currentUser);
+  if (index > -1) {
     pet.activities.splice(index, 1);
   } else {
     pet.activities.push({ type, time, by: currentUser });
@@ -105,6 +108,18 @@ function addVetVisit(petIndex) {
   pet.vetVisits = pet.vetVisits || [];
   pet.vetVisits.push({ date, time, by: currentUser });
   saveData().then(renderPets);
+}
+
+function removeVetVisit(petIndex, visitIndex) {
+  const pet = data.pets[petIndex];
+  if (pet.vetVisits && pet.vetVisits[visitIndex]) {
+    if (pet.vetVisits[visitIndex].by === currentUser) {
+      pet.vetVisits.splice(visitIndex, 1);
+      saveData().then(renderPets);
+    } else {
+      alert("Můžeš smazat jen své vlastní záznamy.");
+    }
+  }
 }
 
 function addPet() {
