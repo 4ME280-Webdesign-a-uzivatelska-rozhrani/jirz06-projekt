@@ -25,6 +25,7 @@ function renderPets() {
     card.className = "pet-card";
     card.innerHTML = `
       <h2>${pet.name}</h2>
+      <button onclick="deletePet(${i})">🗑️ Smazat mazlíčka</button>
       <div>
         <strong>Procházka:</strong>
         ${["Ráno", "Odpoledne", "Večer"].map(time =>
@@ -45,6 +46,15 @@ function renderPets() {
             <div class="activity">${v.date} ${v.time} – ${v.by}</div>
           `).join("")}
         </div>
+      </div>
+      <div>
+        <strong>Aktivity:</strong>
+        ${pet.activities?.map((a, j) => `
+          <div class="activity">
+            ${a.type} – ${a.time} – ${a.by}
+            <button onclick="removeActivity(${i}, ${j})">❌</button>
+          </div>
+        `).join("") || "<div>Žádné aktivity</div>"}
       </div>`;
     petsContainer.appendChild(card);
   });
@@ -75,6 +85,18 @@ function toggleActivity(petIndex, type, time) {
   saveData().then(renderPets);
 }
 
+function removeActivity(petIndex, activityIndex) {
+  const pet = data.pets[petIndex];
+  if (pet.activities && pet.activities[activityIndex]) {
+    if (pet.activities[activityIndex].by === currentUser) {
+      pet.activities.splice(activityIndex, 1);
+      saveData().then(renderPets);
+    } else {
+      alert("Můžeš smazat jen své vlastní aktivity.");
+    }
+  }
+}
+
 function addVetVisit(petIndex) {
   const date = document.getElementById(`date-${petIndex}`).value;
   const time = document.getElementById(`time-${petIndex}`).value;
@@ -91,6 +113,13 @@ function addPet() {
   data.pets.push({ name, activities: [], vetVisits: [] });
   document.getElementById("petNameInput").value = "";
   saveData().then(renderPets);
+}
+
+function deletePet(petIndex) {
+  if (confirm("Opravdu chcete smazat tohoto mazlíčka?")) {
+    data.pets.splice(petIndex, 1);
+    saveData().then(renderPets);
+  }
 }
 
 async function loadData() {
