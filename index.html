@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>PawPlan – Přehled</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; background: #fff3e6; padding: 20px; }
+    .login, .dashboard, .pet-card { margin-bottom: 20px; }
+    input, select, button { padding: 10px; border-radius: 8px; margin: 5px; }
+    .pet-card { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .activity { background: #fce5cd; padding: 10px; border-radius: 5px; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h1>🐾 PawPlan</h1>
+
+  <div class="login">
+    <input type="text" id="userNameInput" placeholder="Zadej své jméno">
+    <button onclick="login()">Přihlásit se</button>
+  </div>
+
+  <div class="dashboard" style="display:none;">
+    <p>Přihlášen jako: <strong id="currentUser"></strong></p>
+    <div>
+      <input type="text" id="petNameInput" placeholder="Jméno mazlíčka">
+      <button onclick="addPet()">➕ Přidat mazlíčka</button>
+    </div>
+    <div id="pets"></div>
+  </div>
+
+<script src="./script.js"></script>
+</body>
+</html>
